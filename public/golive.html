@@ -62,35 +62,10 @@
         </a>
       </div>
 
-      <!-- Step 2: Run the Relay -->
-      <div class="setup-card animate-in animate-delay-2" style="border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05);">
+      <!-- Step 2: Configure OBS -->
+      <div class="setup-card animate-in animate-delay-2">
         <h3>
-          <span class="step-number" style="background: linear-gradient(135deg, #10b981, #059669);">2</span>
-          Run the Local Relay (Required for Cloud Hosting)
-        </h3>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-md); line-height: 1.7;">
-          Since this server is hosted on <strong style="color: var(--text-primary);">Render</strong>, OBS can't connect directly to RTMP.
-          Run the <strong style="color: #10b981;">relay script</strong> on your PC to bridge OBS to the cloud server.
-        </p>
-        <div style="padding: var(--space-md); background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary); font-family: 'Courier New', monospace; font-size: 0.82rem; color: var(--neon-cyan); line-height: 1.8; overflow-x: auto;">
-          <div style="color: var(--text-muted);">## Clone & run the relay on your PC:</div>
-          <div>git clone https://github.com/innovatoramit2025-ship-it/lIVE-STREAM-.git</div>
-          <div>cd lIVE-STREAM-</div>
-          <div>npm install</div>
-          <div style="color: #10b981; font-weight: bold;" id="relay-command">node relay.js https://live-stream-pn2g.onrender.com</div>
-        </div>
-        <button class="copy-btn" onclick="copyRelayCommand()" style="margin-top: var(--space-sm); padding: 8px 16px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); color: #10b981; font-size: 0.8rem; cursor: pointer;">
-          📋 Copy Relay Command
-        </button>
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-sm);">
-          The relay creates a local RTMP server on your PC and forwards your stream to the cloud.
-        </p>
-      </div>
-
-      <!-- Step 3: Configure OBS -->
-      <div class="setup-card animate-in animate-delay-3">
-        <h3>
-          <span class="step-number">3</span>
+          <span class="step-number">2</span>
           Configure OBS Stream Settings
         </h3>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-lg); line-height: 1.7;">
@@ -99,9 +74,9 @@
         </p>
 
         <div class="config-field">
-          <label>Server URL (RTMP) — always use localhost</label>
+          <label>Server URL (RTMP)</label>
           <div class="config-value">
-            <span id="rtmp-url">rtmp://localhost:1935/live</span>
+            <span id="rtmp-url">rtmp://YOUR-SERVER:1935/live</span>
             <button class="copy-btn" onclick="copyToClipboard('rtmp-url')" id="copy-server-btn">📋 Copy</button>
           </div>
         </div>
@@ -122,10 +97,8 @@
         </div>
 
         <!-- Visual OBS Settings Reference -->
-        <div
-          style="margin-top: var(--space-lg); padding: var(--space-md); background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary);">
-          <p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">
-            📋 OBS Settings Summary:</p>
+        <div style="margin-top: var(--space-lg); padding: var(--space-md); background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary);">
+          <p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">📋 OBS Settings Summary:</p>
           <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
             <tr style="border-bottom: 1px solid var(--border-primary);">
               <td style="padding: 8px 12px; color: var(--text-muted);">Service</td>
@@ -133,13 +106,11 @@
             </tr>
             <tr style="border-bottom: 1px solid var(--border-primary);">
               <td style="padding: 8px 12px; color: var(--text-muted);">Server</td>
-              <td style="padding: 8px 12px; color: var(--neon-cyan); font-family: monospace;" id="table-rtmp-url">
-                rtmp://localhost:1935/live</td>
+              <td style="padding: 8px 12px; color: var(--neon-cyan); font-family: monospace;" id="table-rtmp-url">rtmp://YOUR-SERVER:1935/live</td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border-primary);">
               <td style="padding: 8px 12px; color: var(--text-muted);">Stream Key</td>
-              <td style="padding: 8px 12px; color: var(--neon-cyan); font-family: monospace;" id="key-preview">mystream
-              </td>
+              <td style="padding: 8px 12px; color: var(--neon-cyan); font-family: monospace;" id="key-preview">mystream</td>
             </tr>
             <tr>
               <td style="padding: 8px 12px; color: var(--text-muted);">Encoder</td>
@@ -149,10 +120,10 @@
         </div>
       </div>
 
-      <!-- Step 4: Recommended Settings -->
-      <div class="setup-card animate-in animate-delay-4">
+      <!-- Step 3: Recommended Settings -->
+      <div class="setup-card animate-in animate-delay-3">
         <h3>
-          <span class="step-number">4</span>
+          <span class="step-number">3</span>
           Recommended Output Settings
         </h3>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-lg); line-height: 1.7;">
@@ -193,9 +164,9 @@
       </div>
 
       <!-- Step 4: Start Streaming -->
-      <div class="setup-card animate-in animate-delay-5">
+      <div class="setup-card animate-in animate-delay-4">
         <h3>
-          <span class="step-number">5</span>
+          <span class="step-number">4</span>
           Start Streaming!
         </h3>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-lg); line-height: 1.7;">
@@ -333,28 +304,14 @@
     }
 
     // Auto-detect server hostname for RTMP URL display
-    // When using relay, always use localhost
     (function() {
-      // The relay approach always uses localhost
+      const host = window.location.hostname;
+      const rtmpUrl = `rtmp://${host}:1935/live`;
       const rtmpEl = document.getElementById('rtmp-url');
-      if (rtmpEl) rtmpEl.textContent = 'rtmp://localhost:1935/live';
+      const tableEl = document.getElementById('table-rtmp-url');
+      if (rtmpEl) rtmpEl.textContent = rtmpUrl;
+      if (tableEl) tableEl.textContent = rtmpUrl;
     })();
-
-    // Copy relay command
-    function copyRelayCommand() {
-      const url = window.location.origin;
-      const cmd = `node relay.js ${url}`;
-      navigator.clipboard.writeText(cmd).then(() => {
-        const btn = event.target;
-        const originalText = btn.textContent;
-        btn.textContent = '✅ Copied!';
-        btn.style.background = 'rgba(16, 185, 129, 0.3)';
-        setTimeout(() => {
-          btn.textContent = originalText;
-          btn.style.background = '';
-        }, 2000);
-      });
-    }
 
     // Navbar scroll effect
     window.addEventListener('scroll', () => {
