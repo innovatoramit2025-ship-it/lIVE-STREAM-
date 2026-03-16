@@ -1,0 +1,19 @@
+{
+  "name": "streamflix",
+  "version": "1.0.0",
+  "description": "StreamFlix - Entertainment Streaming Platform with OBS Studio Support",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-media-server": "^2.6.2",
+    "socket.io": "^4.7.2",
+    "fluent-ffmpeg": "^2.1.2"
+  }
+}

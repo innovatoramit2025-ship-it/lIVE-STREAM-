@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Watch live streams on StreamFlix. Enjoy real-time entertainment with interactive chat.">
+  <title>StreamFlix — Watch Live</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <a href="/" class="nav-logo">
+      <div class="logo-icon">🎬</div>
+      <span>StreamFlix</span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/#live-streams">Live</a>
+      <a href="/#web-series">Series</a>
+      <a href="golive.html">Go Live</a>
+    </div>
+    <div class="nav-actions">
+      <a href="golive.html" class="btn-go-live">
+        <div class="live-dot"></div>
+        Go Live
+      </a>
+      <div class="nav-avatar">👤</div>
+    </div>
+  </nav>
+
+  <!-- Watch Page -->
+  <div class="watch-page">
+    <div class="watch-layout">
+      <!-- Main Video Area -->
+      <div class="watch-main">
+        <div class="video-container" id="video-container">
+          <video id="video-player" controls autoplay muted playsinline></video>
+          <div class="video-placeholder" id="video-placeholder">
+            <div class="placeholder-icon" id="placeholder-icon">📡</div>
+            <h3 id="placeholder-title">Connect to a stream</h3>
+            <p id="placeholder-text">Enter a stream key below and click Connect to start watching</p>
+            <div id="placeholder-status" style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);"></div>
+          </div>
+        </div>
+
+        <div class="stream-details">
+          <h1 id="stream-title">Live Stream</h1>
+          <div class="stream-info-bar">
+            <span id="stream-status" style="color: var(--text-muted);">⏳ Not connected</span>
+            <span id="stream-viewers-count">👁 0 viewers</span>
+            <span id="stream-uptime">🕐 —</span>
+          </div>
+        </div>
+
+        <!-- Stream Key Input -->
+        <div class="setup-card" style="margin-top: var(--space-lg);">
+          <h3>
+            <span class="step-number">📺</span>
+            Select Stream to Watch
+          </h3>
+          <div class="config-field">
+            <label>Enter Stream Key</label>
+            <div style="display: flex; gap: var(--space-sm);">
+              <input type="text" id="watch-stream-key" class="stream-key-input"
+                     placeholder="Enter the stream key (e.g., mystream)" value="mystream"
+                     onkeypress="if(event.key === 'Enter') connectToStream()">
+              <button class="btn btn-primary" onclick="connectToStream()" id="connect-btn">
+                ▶ Connect
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Streams List -->
+          <div id="active-streams-list" style="margin-top: var(--space-md);">
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: var(--space-sm); text-transform: uppercase; letter-spacing: 0.5px;">
+              📡 Active Streams
+            </label>
+            <div id="streams-list" style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
+              <span style="font-size: 0.85rem; color: var(--text-muted);" id="no-streams-msg">Checking for streams...</span>
+            </div>
+          </div>
+
+          <!-- Connection Log -->
+          <div style="margin-top: var(--space-md);">
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: var(--space-sm); text-transform: uppercase; letter-spacing: 0.5px;">
+              📋 Connection Log
+            </label>
+            <div id="connection-log" style="max-height: 120px; overflow-y: auto; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md); font-family: 'Courier New', monospace; font-size: 0.75rem; color: var(--text-muted);">
+              <div>Waiting for connection...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Panel -->
+      <div class="chat-panel" id="chat-panel">
+        <div class="chat-header">
+          <span>💬 Live Chat</span>
+          <span class="viewer-count" id="chat-viewer-count">
+            👁 <span id="viewer-num">0</span>
+          </span>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-message" style="background: rgba(229, 9, 20, 0.1); border: 1px solid rgba(229, 9, 20, 0.2);">
+            <div class="msg-user" style="color: var(--accent-primary);">StreamFlix Bot</div>
+            <div class="msg-text">Welcome to the live chat! Be respectful and enjoy the stream. 🎬</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="Send a message..."
+                 onkeypress="if(event.key === 'Enter') sendMessage()">
+          <button onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HLS.js for video playback -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <script>
+    // ============================================
+    // State Variables
+    // ============================================
+    const socket = io({ reconnection: true, reconnectionDelay: 1000, reconnectionAttempts: 50 });
+    let currentStreamKey = null;
+    let hls = null;
+    let pollInterval = null;
+    let uptimeInterval = null;
+    let streamStartTime = null;
+    let isStreamLive = false;
+    let retryCount = 0;
+    const MAX_RETRIES = 100;
+
+    const username = 'Viewer_' + Math.random().toString(36).substr(2, 6);
+
+    // Auto-connect from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('key')) {
+      document.getElementById('watch-stream-key').value = urlParams.get('key');
+      window.addEventListener('load', () => setTimeout(connectToStream, 500));
+    }
+
+    // ============================================
+    // Logging
+    // ============================================
+    function log(msg, type = 'info') {
+      const logEl = document.getElementById('connection-log');
+      const colors = { info: 'var(--text-muted)', success: '#10b981', error: '#ef4444', warn: '#f59e0b' };
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.style.color = colors[type] || colors.info;
+      div.textContent = `[${time}] ${msg}`;
+      logEl.appendChild(div);
+      logEl.scrollTop = logEl.scrollHeight;
+      // Keep max 50 log entries
+      while (logEl.children.length > 50) logEl.removeChild(logEl.firstChild);
+    }
+
+    // ============================================
+    // Connect to Stream
+    // ============================================
+    function connectToStream() {
+      const streamKey = document.getElementById('watch-stream-key').value.trim();
+      if (!streamKey) {
+        log('Please enter a stream key!', 'error');
+        return;
+      }
+
+      // Cleanup previous connection
+      cleanup();
+
+      currentStreamKey = streamKey;
+      retryCount = 0;
+      isStreamLive = false;
+
+      // Update UI
+      document.getElementById('stream-title').textContent = `🎬 ${streamKey}'s Stream`;
+      document.getElementById('connect-btn').textContent = '⏳ Connecting...';
+      document.getElementById('connect-btn').disabled = true;
+
+      updatePlaceholder('connecting');
+      log(`Connecting to stream: "${streamKey}"...`, 'info');
+
+      // Join socket room
+      socket.emit('join_stream', streamKey);
+
+      // Start checking for HLS availability
+      checkStream();
+      pollInterval = setInterval(checkStream, 2000);
+    }
+
+    // ============================================
+    // Check Stream & Load HLS
+    // ============================================
+    async function checkStream() {
+      if (!currentStreamKey) return;
+      retryCount++;
+
+      try {
+        const res = await fetch(`/api/stream/${currentStreamKey}`);
+        const data = await res.json();
+
+        if (data.live) {
+          if (!isStreamLive) {
+            log(`Stream "${currentStreamKey}" is LIVE!`, 'success');
+            streamStartTime = new Date(data.startTime);
+            startUptimeCounter();
+          }
+          isStreamLive = true;
+
+          if (data.hlsReady) {
+            log('HLS stream ready — loading video player...', 'success');
+            loadHLSStream();
+            // Stop polling once we're playing
+            if (pollInterval) {
+              clearInterval(pollInterval);
+              pollInterval = null;
+            }
+          } else {
+            updatePlaceholder('transcoding');
+            log('Waiting for HLS transcoding (FFmpeg processing)...', 'warn');
+          }
+        } else {
+          updatePlaceholder('waiting');
+          if (retryCount % 5 === 0) {
+            log(`Stream not live yet... (attempt ${retryCount})`, 'info');
+          }
+        }
+      } catch (err) {
+        if (retryCount % 10 === 0) {
+          log(`Connection check failed: ${err.message}`, 'error');
+        }
+      }
+
+      // Update connect button
+      document.getElementById('connect-btn').textContent = isStreamLive ? '🔴 Connected' : '⏳ Waiting...';
+    }
+
+    // ============================================
+    // Load HLS Stream into Video Player
+    // ============================================
+    function loadHLSStream() {
+      const videoUrl = `${window.location.origin}/live/${currentStreamKey}/index.m3u8`;
+      const video = document.getElementById('video-player');
+      const placeholder = document.getElementById('video-placeholder');
+
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          debug: false,
+          enableWorker: true,
+          lowLatencyMode: true,
+          liveSyncDurationCount: 2,
+          liveMaxLatencyDurationCount: 5,
+          liveDurationInfinity: true,
+          maxBufferLength: 10,
+          maxMaxBufferLength: 30,
+          maxBufferSize: 60 * 1000 * 1000, // 60MB
+          maxBufferHole: 0.5,
+          startFragPrefetch: true,
+          testBandwidth: true,
+          progressive: true,
+          // Retry settings
+          manifestLoadingMaxRetry: 20,
+          manifestLoadingRetryDelay: 1000,
+          levelLoadingMaxRetry: 20,
+          levelLoadingRetryDelay: 1000,
+          fragLoadingMaxRetry: 20,
+          fragLoadingRetryDelay: 1000,
+        });
+
+        hls.loadSource(videoUrl);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+          log(`HLS manifest loaded (${data.levels.length} quality levels)`, 'success');
+          placeholder.style.display = 'none';
+          video.play().catch(e => {
+            log('Autoplay blocked — click video to play', 'warn');
+          });
+          document.getElementById('stream-status').innerHTML = '<span style="color: #10b981;">🔴 LIVE</span>';
+          document.getElementById('connect-btn').textContent = '🔴 LIVE';
+          document.getElementById('connect-btn').style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                log(`Network error: ${data.details} — retrying...`, 'warn');
+                // Check if stream is still live
+                fetch(`/api/stream/${currentStreamKey}`)
+                  .then(r => r.json())
+                  .then(d => {
+                    if (d.live) {
+                      hls.startLoad();
+                    } else {
+                      handleStreamEnded();
+                    }
+                  });
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                log('Media error — attempting recovery...', 'warn');
+                hls.recoverMediaError();
+                break;
+              default:
+                log(`Fatal error: ${data.details}`, 'error');
+                // Try reloading after a short delay
+                setTimeout(() => {
+                  if (isStreamLive) loadHLSStream();
+                }, 3000);
+                break;
+            }
+          }
+        });
+
+        hls.on(Hls.Events.FRAG_LOADED, () => {
+          // Stream is actively playing
+          if (placeholder.style.display !== 'none') {
+            placeholder.style.display = 'none';
+          }
+        });
+
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native HLS support (Safari)
+        video.src = videoUrl;
+        video.addEventListener('loadedmetadata', () => {
+          placeholder.style.display = 'none';
+          video.play();
+          log('Playing via native HLS', 'success');
+        });
+        video.addEventListener('error', () => {
+          log('Video load error — retrying...', 'warn');
+          setTimeout(() => {
+            if (isStreamLive) {
+              video.src = videoUrl;
+              video.load();
+            }
+          }, 3000);
+        });
+      } else {
+        log('HLS not supported in this browser!', 'error');
+        updatePlaceholder('unsupported');
+      }
+    }
+
+    // ============================================
+    // Handle Stream End
+    // ============================================
+    function handleStreamEnded() {
+      isStreamLive = false;
+      document.getElementById('video-placeholder').style.display = 'flex';
+      document.getElementById('stream-status').innerHTML = '⏹ Stream Ended';
+      document.getElementById('stream-status').style.color = 'var(--text-muted)';
+      document.getElementById('connect-btn').textContent = '▶ Reconnect';
+      document.getElementById('connect-btn').disabled = false;
+      document.getElementById('connect-btn').style.background = '';
+      updatePlaceholder('ended');
+      log('Stream has ended.', 'info');
+
+      if (uptimeInterval) {
+        clearInterval(uptimeInterval);
+        uptimeInterval = null;
+      }
+    }
+
+    // ============================================
+    // Update Placeholder State
+    // ============================================
+    function updatePlaceholder(state) {
+      const icon = document.getElementById('placeholder-icon');
+      const title = document.getElementById('placeholder-title');
+      const text = document.getElementById('placeholder-text');
+      const status = document.getElementById('placeholder-status');
+
+      const states = {
+        connecting: { icon: '🔄', title: 'Connecting...', text: 'Looking for the stream', status: '' },
+        waiting: { icon: '📡', title: 'Waiting for stream', text: `Stream "${currentStreamKey}" is not live yet`, status: 'The video will appear automatically when OBS starts streaming' },
+        transcoding: { icon: '⚙️', title: 'Stream found!', text: 'FFmpeg is transcoding the RTMP stream to HLS', status: 'Video will appear in a few seconds...' },
+        ended: { icon: '⏹', title: 'Stream ended', text: 'The streamer has stopped broadcasting', status: 'Click Reconnect to watch again when they go live' },
+        unsupported: { icon: '❌', title: 'Browser not supported', text: 'Your browser does not support HLS playback', status: 'Try Chrome, Firefox, Edge, or Safari' },
+      };
+
+      const s = states[state] || states.waiting;
+      icon.textContent = s.icon;
+      title.textContent = s.title;
+      text.textContent = s.text;
+      status.textContent = s.status;
+    }
+
+    // ============================================
+    // Uptime Counter
+    // ============================================
+    function startUptimeCounter() {
+      if (uptimeInterval) clearInterval(uptimeInterval);
+      uptimeInterval = setInterval(() => {
+        if (!streamStartTime) return;
+        const diff = Date.now() - streamStartTime.getTime();
+        const hours = Math.floor(diff / 3600000);
+        const mins = Math.floor((diff % 3600000) / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        const display = hours > 0 
+          ? `🕐 ${hours}h ${mins}m ${secs}s`
+          : `🕐 ${mins}m ${secs}s`;
+        document.getElementById('stream-uptime').textContent = display;
+      }, 1000);
+    }
+
+    // ============================================
+    // Cleanup
+    // ============================================
+    function cleanup() {
+      if (currentStreamKey) {
+        socket.emit('leave_stream', currentStreamKey);
+      }
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+      if (uptimeInterval) {
+        clearInterval(uptimeInterval);
+        uptimeInterval = null;
+      }
+      isStreamLive = false;
+      retryCount = 0;
+    }
+
+    // ============================================
+    // Refresh Active Streams List
+    // ============================================
+    function refreshStreamsList() {
+      fetch('/api/streams')
+        .then(res => res.json())
+        .then(streams => {
+          const list = document.getElementById('streams-list');
+          if (streams.length === 0) {
+            list.innerHTML = '<span style="font-size: 0.85rem; color: var(--text-muted);">No active streams right now</span>';
+            return;
+          }
+          list.innerHTML = streams.map(s => {
+            const duration = s.duration || 0;
+            const mins = Math.floor(duration / 60);
+            return `
+              <button class="category-pill ${currentStreamKey === s.streamKey ? 'active' : ''}" 
+                      onclick="document.getElementById('watch-stream-key').value='${s.streamKey}'; connectToStream();">
+                🔴 ${s.streamKey} · ${s.viewers} viewers · ${mins}m
+              </button>
+            `;
+          }).join('');
+        })
+        .catch(() => {
+          document.getElementById('streams-list').innerHTML = 
+            '<span style="font-size: 0.85rem; color: #ef4444;">⚠ Cannot connect to server</span>';
+        });
+    }
+
+    setInterval(refreshStreamsList, 3000);
+    refreshStreamsList();
+
+    // ============================================
+    // Socket.IO Events
+    // ============================================
+    socket.on('chat_history', (messages) => {
+      messages.forEach(msg => appendMessage(msg));
+    });
+
+    socket.on('new_message', (msg) => {
+      appendMessage(msg);
+    });
+
+    socket.on('viewer_count', (count) => {
+      document.getElementById('viewer-num').textContent = count;
+      document.getElementById('stream-viewers-count').textContent = `👁 ${count} viewers`;
+    });
+
+    socket.on('stream_started', ({ streamKey }) => {
+      log(`Stream "${streamKey}" just went LIVE!`, 'success');
+      refreshStreamsList();
+      if (streamKey === currentStreamKey && !isStreamLive) {
+        // Auto-reconnect to the stream
+        checkStream();
+        if (!pollInterval) {
+          pollInterval = setInterval(checkStream, 2000);
+        }
+      }
+    });
+
+    socket.on('stream_ended', ({ streamKey }) => {
+      log(`Stream "${streamKey}" has ended.`, 'info');
+      refreshStreamsList();
+      if (streamKey === currentStreamKey) {
+        handleStreamEnded();
+      }
+    });
+
+    socket.on('active_streams', (streams) => {
+      if (streams.length > 0) {
+        log(`${streams.length} stream(s) currently live: ${streams.map(s => s.streamKey).join(', ')}`, 'info');
+      }
+    });
+
+    socket.on('connect', () => {
+      log('Connected to server ✓', 'success');
+    });
+
+    socket.on('disconnect', () => {
+      log('Disconnected from server — reconnecting...', 'warn');
+    });
+
+    socket.on('reconnect', () => {
+      log('Reconnected to server ✓', 'success');
+      if (currentStreamKey) {
+        socket.emit('join_stream', currentStreamKey);
+      }
+    });
+
+    // ============================================
+    // Chat Functions
+    // ============================================
+    function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      if (!message || !currentStreamKey) return;
+
+      socket.emit('chat_message', {
+        streamKey: currentStreamKey,
+        username: username,
+        message: message
+      });
+
+      input.value = '';
+    }
+
+    function appendMessage(msg) {
+      const container = document.getElementById('chat-messages');
+      const colors = ['#a855f7', '#3b82f6', '#06b6d4', '#ec4899', '#f97316', '#10b981', '#f43f5e', '#8b5cf6'];
+      const color = colors[Math.abs(hashCode(msg.username)) % colors.length];
+
+      const el = document.createElement('div');
+      el.className = 'chat-message';
+      el.innerHTML = `
+        <div class="msg-user" style="color: ${color}">${escapeHtml(msg.username)}</div>
+        <div class="msg-text">${escapeHtml(msg.message)}</div>
+        <div class="msg-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+      `;
+      container.appendChild(el);
+      container.scrollTop = container.scrollHeight;
+
+      // Keep max 100 visible messages
+      while (container.children.length > 100) container.removeChild(container.firstChild);
+    }
+
+    function hashCode(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', cleanup);
+  </script>
+</body>
+</html>

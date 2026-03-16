@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="StreamFlix - Your premium destination for web series streaming and live broadcasts. Watch trending shows and go live with OBS Studio.">
+  <title>StreamFlix — Stream. Watch. Repeat.</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+  <!-- ======== Navigation ======== -->
+  <nav class="navbar" id="navbar">
+    <a href="/" class="nav-logo">
+      <div class="logo-icon">🎬</div>
+      <span>StreamFlix</span>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="active">Home</a>
+      <a href="#live-streams">Live</a>
+      <a href="#web-series">Series</a>
+      <a href="#categories">Categories</a>
+    </div>
+    <div class="nav-actions">
+      <a href="golive.html" class="btn-go-live">
+        <div class="live-dot"></div>
+        Go Live
+      </a>
+      <div class="nav-avatar">👤</div>
+    </div>
+  </nav>
+
+  <!-- ======== Hero Section ======== -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <img src="https://picsum.photos/seed/herostream/1920/1080" alt="Featured Series" loading="eager">
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        Trending Now
+      </div>
+      <h1>Neon Horizons</h1>
+      <div class="hero-meta">
+        <span class="rating">⭐ 4.8</span>
+        <span>🎬 12 Episodes</span>
+        <span>📺 Sci-Fi</span>
+        <span>2026</span>
+      </div>
+      <p>In a cyberpunk metropolis, a rogue AI discovers emotions and must decide between serving humanity or pursuing freedom. An epic journey through neon-lit streets and digital landscapes.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="window.location.href='watch.html'">
+          ▶ Watch Now
+        </button>
+        <button class="btn btn-secondary">
+          ＋ My List
+        </button>
+        <button class="btn-icon" title="More Info">
+          ℹ️
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== Stats Bar ======== -->
+  <div class="stats-bar">
+    <div class="stat-card animate-in">
+      <div class="stat-number" id="stat-streams">0</div>
+      <div class="stat-label">Live Streams</div>
+    </div>
+    <div class="stat-card animate-in animate-delay-1">
+      <div class="stat-number">8</div>
+      <div class="stat-label">Web Series</div>
+    </div>
+    <div class="stat-card animate-in animate-delay-2">
+      <div class="stat-number">84</div>
+      <div class="stat-label">Episodes</div>
+    </div>
+    <div class="stat-card animate-in animate-delay-3">
+      <div class="stat-number" id="stat-viewers">0</div>
+      <div class="stat-label">Active Viewers</div>
+    </div>
+  </div>
+
+  <!-- ======== Live Streams Section ======== -->
+  <section class="section" id="live-streams">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="icon">🔴</span>
+        Live Now
+      </h2>
+      <a href="#" class="see-all">See All →</a>
+    </div>
+    <div class="live-streams-grid" id="live-streams-grid">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- ======== Categories ======== -->
+  <section class="section" id="categories">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="icon">🏷️</span>
+        Browse Categories
+      </h2>
+    </div>
+    <div class="category-pills" id="category-pills">
+      <button class="category-pill active" data-category="all">All</button>
+      <button class="category-pill" data-category="Sci-Fi">Sci-Fi</button>
+      <button class="category-pill" data-category="Thriller">Thriller</button>
+      <button class="category-pill" data-category="Drama">Drama</button>
+      <button class="category-pill" data-category="Action">Action</button>
+      <button class="category-pill" data-category="Fantasy">Fantasy</button>
+      <button class="category-pill" data-category="Historical Drama">Historical</button>
+      <button class="category-pill" data-category="Psychological Thriller">Psychological</button>
+    </div>
+  </section>
+
+  <!-- ======== Web Series Section ======== -->
+  <section class="section" id="web-series">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="icon">🎭</span>
+        Popular Web Series
+      </h2>
+      <a href="#" class="see-all">See All →</a>
+    </div>
+    <div class="series-grid" id="series-grid">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- ======== Continue Watching ======== -->
+  <section class="section" id="continue-watching">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="icon">▶️</span>
+        Continue Watching
+      </h2>
+    </div>
+    <div class="scroll-row" id="continue-row">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- ======== Top Rated Section ======== -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="icon">🏆</span>
+        Top Rated
+      </h2>
+      <a href="#" class="see-all">See All →</a>
+    </div>
+    <div class="scroll-row" id="top-rated-row">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- ======== Footer ======== -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="nav-logo">
+          <div class="logo-icon">🎬</div>
+          <span>StreamFlix</span>
+        </a>
+        <p>Your premium destination for web series streaming and live broadcasts. Stream your content with OBS Studio and reach audiences worldwide.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="/">Home</a>
+        <a href="#live-streams">Live Streams</a>
+        <a href="#web-series">Web Series</a>
+        <a href="golive.html">Go Live</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="golive.html">OBS Setup Guide</a>
+        <a href="#">Stream Tips</a>
+        <a href="#">Community</a>
+        <a href="#">Support</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="#">Terms of Service</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Policy</a>
+        <a href="#">DMCA</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 StreamFlix. All rights reserved.</span>
+      <span>Made with ❤️ for streamers</span>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
