@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Go live on StreamFlix using OBS Studio. Follow our easy setup guide to start streaming in minutes.">
+  <meta name="description"
+    content="Go live on StreamFlix using OBS Studio. Follow our easy setup guide to start streaming in minutes.">
   <title>StreamFlix — Go Live with OBS Studio</title>
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
 </head>
+
 <body>
 
   <!-- ======== Navigation ======== -->
@@ -37,7 +41,8 @@
       <!-- Header -->
       <div class="go-live-header animate-in">
         <h1>🎥 Go Live on StreamFlix</h1>
-        <p>Follow these simple steps to start streaming using OBS Studio. Your stream will be available to all StreamFlix viewers in real-time!</p>
+        <p>Follow these simple steps to start streaming using OBS Studio. Your stream will be available to all
+          StreamFlix viewers in real-time!</p>
       </div>
 
       <!-- Step 1: Install OBS -->
@@ -47,28 +52,56 @@
           Install OBS Studio
         </h3>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-md); line-height: 1.7;">
-          Download and install <strong style="color: var(--text-primary);">OBS Studio</strong> from the official website. 
+          Download and install <strong style="color: var(--text-primary);">OBS Studio</strong> from the official
+          website.
           It's free, open-source, and available for Windows, macOS, and Linux.
         </p>
-        <a href="https://obsproject.com/download" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex;">
+        <a href="https://obsproject.com/download" target="_blank" rel="noopener" class="btn btn-primary"
+          style="display: inline-flex;">
           ⬇️ Download OBS Studio
         </a>
       </div>
 
-      <!-- Step 2: Configure OBS -->
-      <div class="setup-card animate-in animate-delay-2">
+      <!-- Step 2: Run the Relay -->
+      <div class="setup-card animate-in animate-delay-2" style="border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.05);">
         <h3>
-          <span class="step-number">2</span>
+          <span class="step-number" style="background: linear-gradient(135deg, #10b981, #059669);">2</span>
+          Run the Local Relay (Required for Cloud Hosting)
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-md); line-height: 1.7;">
+          Since this server is hosted on <strong style="color: var(--text-primary);">Render</strong>, OBS can't connect directly to RTMP.
+          Run the <strong style="color: #10b981;">relay script</strong> on your PC to bridge OBS to the cloud server.
+        </p>
+        <div style="padding: var(--space-md); background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary); font-family: 'Courier New', monospace; font-size: 0.82rem; color: var(--neon-cyan); line-height: 1.8; overflow-x: auto;">
+          <div style="color: var(--text-muted);">## Clone & run the relay on your PC:</div>
+          <div>git clone https://github.com/innovatoramit2025-ship-it/lIVE-STREAM-.git</div>
+          <div>cd lIVE-STREAM-</div>
+          <div>npm install</div>
+          <div style="color: #10b981; font-weight: bold;" id="relay-command">node relay.js https://live-stream-pn2g.onrender.com</div>
+        </div>
+        <button class="copy-btn" onclick="copyRelayCommand()" style="margin-top: var(--space-sm); padding: 8px 16px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); color: #10b981; font-size: 0.8rem; cursor: pointer;">
+          📋 Copy Relay Command
+        </button>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-sm);">
+          The relay creates a local RTMP server on your PC and forwards your stream to the cloud.
+        </p>
+      </div>
+
+      <!-- Step 3: Configure OBS -->
+      <div class="setup-card animate-in animate-delay-3">
+        <h3>
+          <span class="step-number">3</span>
           Configure OBS Stream Settings
         </h3>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-lg); line-height: 1.7;">
-          Open OBS Studio and go to <strong style="color: var(--text-primary);">Settings → Stream</strong>. Select <strong style="color: var(--text-primary);">"Custom..."</strong> as the Service, and enter the following:
+          Open OBS Studio and go to <strong style="color: var(--text-primary);">Settings → Stream</strong>. Select
+          <strong style="color: var(--text-primary);">"Custom..."</strong> as the Service, and enter the following:
         </p>
 
         <div class="config-field">
-          <label>Server URL (RTMP)</label>
+          <label>Server URL (RTMP) — always use localhost</label>
           <div class="config-value">
-            <span id="rtmp-url">rtmp://YOUR-SERVER-IP:1935/live</span>
+            <span id="rtmp-url">rtmp://localhost:1935/live</span>
             <button class="copy-btn" onclick="copyToClipboard('rtmp-url')" id="copy-server-btn">📋 Copy</button>
           </div>
         </div>
@@ -76,10 +109,10 @@
         <div class="config-field">
           <label>Stream Key</label>
           <div style="display: flex; gap: var(--space-sm); align-items: center;">
-            <input type="text" id="stream-key-input" class="stream-key-input" 
-                   placeholder="Choose a unique key (e.g., mystream)" value="mystream">
-            <button class="copy-btn" onclick="copyToClipboard('stream-key-input')" 
-                    style="padding: 10px 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;">
+            <input type="text" id="stream-key-input" class="stream-key-input"
+              placeholder="Choose a unique key (e.g., mystream)" value="mystream">
+            <button class="copy-btn" onclick="copyToClipboard('stream-key-input')"
+              style="padding: 10px 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;">
               📋 Copy
             </button>
           </div>
@@ -89,8 +122,10 @@
         </div>
 
         <!-- Visual OBS Settings Reference -->
-        <div style="margin-top: var(--space-lg); padding: var(--space-md); background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary);">
-          <p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">📋 OBS Settings Summary:</p>
+        <div
+          style="margin-top: var(--space-lg); padding: var(--space-md); background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary);">
+          <p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-sm);">
+            📋 OBS Settings Summary:</p>
           <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
             <tr style="border-bottom: 1px solid var(--border-primary);">
               <td style="padding: 8px 12px; color: var(--text-muted);">Service</td>
@@ -98,11 +133,13 @@
             </tr>
             <tr style="border-bottom: 1px solid var(--border-primary);">
               <td style="padding: 8px 12px; color: var(--text-muted);">Server</td>
-              <td style="padding: 8px 12px; color: var(--neon-cyan); font-family: monospace;" id="table-rtmp-url">rtmp://YOUR-SERVER-IP:1935/live</td>
+              <td style="padding: 8px 12px; color: var(--neon-cyan); font-family: monospace;" id="table-rtmp-url">
+                rtmp://localhost:1935/live</td>
             </tr>
             <tr style="border-bottom: 1px solid var(--border-primary);">
               <td style="padding: 8px 12px; color: var(--text-muted);">Stream Key</td>
-              <td style="padding: 8px 12px; color: var(--neon-cyan); font-family: monospace;" id="key-preview">mystream</td>
+              <td style="padding: 8px 12px; color: var(--neon-cyan); font-family: monospace;" id="key-preview">mystream
+              </td>
             </tr>
             <tr>
               <td style="padding: 8px 12px; color: var(--text-muted);">Encoder</td>
@@ -112,44 +149,58 @@
         </div>
       </div>
 
-      <!-- Step 3: Recommended Settings -->
-      <div class="setup-card animate-in animate-delay-3">
+      <!-- Step 4: Recommended Settings -->
+      <div class="setup-card animate-in animate-delay-4">
         <h3>
-          <span class="step-number">3</span>
+          <span class="step-number">4</span>
           Recommended Output Settings
         </h3>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-lg); line-height: 1.7;">
-          Go to <strong style="color: var(--text-primary);">Settings → Output</strong> and configure these recommended settings for best quality:
+          Go to <strong style="color: var(--text-primary);">Settings → Output</strong> and configure these recommended
+          settings for best quality:
         </p>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
-          <div style="padding: var(--space-md); background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
-            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Video Bitrate</div>
+          <div
+            style="padding: var(--space-md); background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
+            <div
+              style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+              Video Bitrate</div>
             <div style="font-size: 1.1rem; font-weight: 700; color: var(--neon-cyan);">2500-6000 Kbps</div>
           </div>
-          <div style="padding: var(--space-md); background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
-            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Resolution</div>
+          <div
+            style="padding: var(--space-md); background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
+            <div
+              style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+              Resolution</div>
             <div style="font-size: 1.1rem; font-weight: 700; color: var(--neon-cyan);">1920×1080</div>
           </div>
-          <div style="padding: var(--space-md); background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
-            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Framerate</div>
+          <div
+            style="padding: var(--space-md); background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
+            <div
+              style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+              Framerate</div>
             <div style="font-size: 1.1rem; font-weight: 700; color: var(--neon-cyan);">30 or 60 FPS</div>
           </div>
-          <div style="padding: var(--space-md); background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
-            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Audio Bitrate</div>
+          <div
+            style="padding: var(--space-md); background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: var(--radius-md);">
+            <div
+              style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+              Audio Bitrate</div>
             <div style="font-size: 1.1rem; font-weight: 700; color: var(--neon-cyan);">160 Kbps</div>
           </div>
         </div>
       </div>
 
       <!-- Step 4: Start Streaming -->
-      <div class="setup-card animate-in animate-delay-4">
+      <div class="setup-card animate-in animate-delay-5">
         <h3>
-          <span class="step-number">4</span>
+          <span class="step-number">5</span>
           Start Streaming!
         </h3>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-lg); line-height: 1.7;">
-          Click <strong style="color: var(--text-primary);">"Start Streaming"</strong> in OBS Studio. Your stream will automatically appear on StreamFlix!
+          Click <strong style="color: var(--text-primary);">"Start Streaming"</strong> in OBS Studio. Your stream will
+          automatically appear on StreamFlix!
           Viewers can watch by entering your stream key on the watch page.
         </p>
 
@@ -163,40 +214,53 @@
         </div>
 
         <!-- Stream Status -->
-        <div id="stream-status-card" style="display: none; margin-top: var(--space-lg); padding: var(--space-md); background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary);">
+        <div id="stream-status-card"
+          style="display: none; margin-top: var(--space-lg); padding: var(--space-md); background: var(--bg-primary); border-radius: var(--radius-md); border: 1px solid var(--border-primary);">
           <div style="display: flex; align-items: center; gap: var(--space-sm);">
-            <span id="status-indicator" style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted);"></span>
+            <span id="status-indicator"
+              style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted);"></span>
             <span id="status-text" style="font-size: 0.9rem;">Checking...</span>
           </div>
         </div>
       </div>
 
       <!-- Quick Tips -->
-      <div class="setup-card animate-in" style="border-color: rgba(168, 85, 247, 0.2); background: rgba(168, 85, 247, 0.05);">
+      <div class="setup-card animate-in"
+        style="border-color: rgba(168, 85, 247, 0.2); background: rgba(168, 85, 247, 0.05);">
         <h3>
-          <span class="step-number" style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));">💡</span>
+          <span class="step-number"
+            style="background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));">💡</span>
           Pro Tips
         </h3>
         <ul style="list-style: none; padding: 0;">
-          <li style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
+          <li
+            style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
             <span style="color: var(--neon-purple);">▸</span>
-            Make sure <strong style="color: var(--text-primary);">FFmpeg</strong> is installed on the server for HLS transcoding
+            Make sure <strong style="color: var(--text-primary);">FFmpeg</strong> is installed on the server for HLS
+            transcoding
           </li>
-          <li style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
+          <li
+            style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
             <span style="color: var(--neon-purple);">▸</span>
-            Use a <strong style="color: var(--text-primary);">wired connection</strong> for the most stable stream quality
+            Use a <strong style="color: var(--text-primary);">wired connection</strong> for the most stable stream
+            quality
           </li>
-          <li style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
+          <li
+            style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
             <span style="color: var(--neon-purple);">▸</span>
-            Start with <strong style="color: var(--text-primary);">2500 Kbps</strong> bitrate and increase gradually while monitoring quality
+            Start with <strong style="color: var(--text-primary);">2500 Kbps</strong> bitrate and increase gradually
+            while monitoring quality
           </li>
-          <li style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
+          <li
+            style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
             <span style="color: var(--neon-purple);">▸</span>
             Add scenes and sources in OBS to make your stream visually engaging
           </li>
-          <li style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
+          <li
+            style="padding: 8px 0; font-size: 0.9rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: var(--space-sm);">
             <span style="color: var(--neon-purple);">▸</span>
-            Share your <strong style="color: var(--text-primary);">stream key</strong> with friends so they can join and watch!
+            Share your <strong style="color: var(--text-primary);">stream key</strong> with friends so they can join and
+            watch!
           </li>
         </ul>
       </div>
@@ -269,14 +333,28 @@
     }
 
     // Auto-detect server hostname for RTMP URL display
+    // When using relay, always use localhost
     (function() {
-      const host = window.location.hostname;
-      const rtmpUrl = `rtmp://${host}:1935/live`;
+      // The relay approach always uses localhost
       const rtmpEl = document.getElementById('rtmp-url');
-      const tableEl = document.getElementById('table-rtmp-url');
-      if (rtmpEl) rtmpEl.textContent = rtmpUrl;
-      if (tableEl) tableEl.textContent = rtmpUrl;
+      if (rtmpEl) rtmpEl.textContent = 'rtmp://localhost:1935/live';
     })();
+
+    // Copy relay command
+    function copyRelayCommand() {
+      const url = window.location.origin;
+      const cmd = `node relay.js ${url}`;
+      navigator.clipboard.writeText(cmd).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✅ Copied!';
+        btn.style.background = 'rgba(16, 185, 129, 0.3)';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+        }, 2000);
+      });
+    }
 
     // Navbar scroll effect
     window.addEventListener('scroll', () => {
@@ -284,4 +362,5 @@
     });
   </script>
 </body>
+
 </html>

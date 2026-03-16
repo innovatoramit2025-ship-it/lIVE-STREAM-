@@ -11,7 +11,7 @@ const io = new Server(server, {
   cors: { origin: '*' },
   pingTimeout: 60000,
   pingInterval: 25000,
-  maxHttpBufferSize: 1e6,
+  maxHttpBufferSize: 1e8, // 100MB for video stream chunks
 });
 
 // ============================================
@@ -364,6 +364,7 @@ app.get('/api/series', (req, res) => {
 // ============================================
 const chatMessages = new Map();
 const viewerSockets = new Map(); // socketId -> streamKey
+const browserStreams = new Map(); // socketId -> { streamKey, ffmpegProcess, startTime }
 
 io.on('connection', (socket) => {
   console.log(`[Socket] Viewer connected: ${socket.id}`);
@@ -442,7 +443,163 @@ io.on('connection', (socket) => {
       }
       viewerSockets.delete(socket.id);
     }
+
+    // Clean up browser stream if this socket was streaming
+    if (browserStreams.has(socket.id)) {
+      const bs = browserStreams.get(socket.id);
+      const streamKey = bs.streamKey;
+      console.log(`[Browser Stream] Streamer disconnected: "${streamKey}"`);
+      
+      if (bs.ffmpegProcess) {
+        try { bs.ffmpegProcess.stdin.end(); } catch(e) {}
+        try { bs.ffmpegProcess.kill('SIGTERM'); } catch(e) {}
+      }
+      
+      activeStreams.delete(streamKey);
+      io.emit('stream_ended', { streamKey });
+      browserStreams.delete(socket.id);
+
+      // Clean up HLS files after delay
+      setTimeout(() => {
+        const streamDir = path.join(hlsDir, streamKey);
+        if (fs.existsSync(streamDir)) {
+          try {
+            fs.rmSync(streamDir, { recursive: true, force: true });
+            console.log(`[Cleanup] Removed HLS files for browser stream: ${streamKey}`);
+          } catch (e) {}
+        }
+      }, 10000);
+    }
+
     console.log(`[Socket] Viewer disconnected: ${socket.id}`);
+  });
+
+  // ============================================
+  // Browser-Based Streaming (WebSocket + FFmpeg)
+  // ============================================
+  socket.on('browser_stream_start', ({ streamKey }) => {
+    if (!streamKey || streamKey.length > 50) return;
+    // Sanitize stream key
+    const safeKey = streamKey.replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!safeKey) return;
+
+    console.log(`\n${'='.repeat(50)}`);
+    console.log(`🌐 BROWSER STREAM STARTED: "${safeKey}"`);
+    console.log(`   Socket ID: ${socket.id}`);
+    console.log(`   Time: ${new Date().toLocaleString()}`);
+    console.log(`${'='.repeat(50)}\n`);
+
+    // Create output directory
+    const outputDir = path.join(hlsDir, safeKey);
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Spawn FFmpeg process: stdin (WebM) -> HLS output
+    const { spawn } = require('child_process');
+    const ffmpegArgs = [
+      '-i', 'pipe:0',              // Read from stdin
+      '-c:v', 'libx264',           // Video codec
+      '-preset', 'ultrafast',      // Fast encoding for real-time
+      '-tune', 'zerolatency',      // Low latency
+      '-c:a', 'aac',               // Audio codec
+      '-ar', '44100',              // Audio sample rate
+      '-b:a', '128k',              // Audio bitrate
+      '-f', 'hls',                 // Output format
+      '-hls_time', '2',            // Segment duration
+      '-hls_list_size', '3',       // Number of segments in playlist
+      '-hls_flags', 'delete_segments+append_list', // Clean old segments
+      '-hls_segment_filename', path.join(outputDir, 'seg_%03d.ts'),
+      path.join(outputDir, 'index.m3u8')
+    ];
+
+    const ffmpegProcess = spawn(FFMPEG_PATH, ffmpegArgs, {
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+
+    ffmpegProcess.stderr.on('data', (data) => {
+      // Only log important FFmpeg messages
+      const msg = data.toString();
+      if (msg.includes('Error') || msg.includes('error')) {
+        console.error(`[FFmpeg/${safeKey}] ${msg.trim()}`);
+      }
+    });
+
+    ffmpegProcess.on('close', (code) => {
+      console.log(`[FFmpeg/${safeKey}] Process exited with code ${code}`);
+    });
+
+    ffmpegProcess.on('error', (err) => {
+      console.error(`[FFmpeg/${safeKey}] Error:`, err.message);
+    });
+
+    // Store the stream
+    browserStreams.set(socket.id, {
+      streamKey: safeKey,
+      ffmpegProcess,
+      startTime: new Date()
+    });
+
+    // Register as active stream
+    activeStreams.set(safeKey, {
+      id: socket.id,
+      streamKey: safeKey,
+      streamPath: `/live/${safeKey}`,
+      startTime: new Date(),
+      viewers: 0,
+      status: 'live',
+      type: 'browser'
+    });
+
+    // Notify clients
+    io.emit('stream_started', {
+      streamKey: safeKey,
+      startTime: new Date().toISOString()
+    });
+
+    socket.emit('browser_stream_ready', { streamKey: safeKey });
+  });
+
+  socket.on('browser_stream_data', (data) => {
+    const bs = browserStreams.get(socket.id);
+    if (bs && bs.ffmpegProcess && bs.ffmpegProcess.stdin.writable) {
+      try {
+        const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
+        bs.ffmpegProcess.stdin.write(buffer);
+      } catch (e) {
+        // FFmpeg stdin closed
+      }
+    }
+  });
+
+  socket.on('browser_stream_stop', () => {
+    const bs = browserStreams.get(socket.id);
+    if (bs) {
+      const streamKey = bs.streamKey;
+      console.log(`[Browser Stream] Stopped: "${streamKey}"`);
+
+      if (bs.ffmpegProcess) {
+        try { bs.ffmpegProcess.stdin.end(); } catch(e) {}
+        setTimeout(() => {
+          try { bs.ffmpegProcess.kill('SIGTERM'); } catch(e) {}
+        }, 2000);
+      }
+
+      activeStreams.delete(streamKey);
+      io.emit('stream_ended', { streamKey });
+      browserStreams.delete(socket.id);
+
+      // Clean up HLS files after delay
+      setTimeout(() => {
+        const streamDir = path.join(hlsDir, streamKey);
+        if (fs.existsSync(streamDir)) {
+          try {
+            fs.rmSync(streamDir, { recursive: true, force: true });
+            console.log(`[Cleanup] Removed HLS files for: ${streamKey}`);
+          } catch (e) {}
+        }
+      }, 15000);
+    }
   });
 });
 
